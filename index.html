@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Water Sort Puzzle - ボトル色合わせパズル</title>
+    <title>Water Sort Puzzle - リアル水流ボトルパズル</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -19,11 +19,10 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-            background-color: #1a1a1f;
-            /* Stylish doodle dark pattern background */
+            background-color: #121319;
             background-image: 
-                radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.05) 2px, transparent 0),
-                radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.03) 2px, transparent 0);
+                radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.04) 2px, transparent 0),
+                radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.02) 2px, transparent 0);
             background-size: 100px 100px;
             overflow: hidden;
         }
@@ -32,17 +31,16 @@
         .tube-wrapper {
             position: relative;
             cursor: pointer;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.2);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .tube-wrapper.selected {
-            transform: translateY(-22px) scale(1.05);
+            transform: translateY(-26px) scale(1.06);
         }
 
-        /* Shake animation for invalid moves */
         @keyframes tubeShake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-6px); }
@@ -55,9 +53,9 @@
 
         .tube {
             position: relative;
-            width: 52px;
-            height: 170px;
-            border: 3px solid rgba(255, 255, 255, 0.85);
+            width: 56px;
+            height: 180px;
+            border: 3.5px solid rgba(255, 255, 255, 0.88);
             border-top: none;
             border-bottom-left-radius: 28px;
             border-bottom-right-radius: 28px;
@@ -65,11 +63,11 @@
             border-top-right-radius: 6px;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
             box-shadow: 
-                0 8px 20px rgba(0, 0, 0, 0.4),
-                inset 2px 0 6px rgba(255, 255, 255, 0.2),
-                inset -2px 0 6px rgba(0, 0, 0, 0.3);
+                0 12px 28px rgba(0, 0, 0, 0.55),
+                inset 2px 0 8px rgba(255, 255, 255, 0.25),
+                inset -2px 0 8px rgba(0, 0, 0, 0.45);
             display: flex;
             flex-direction: column-reverse;
         }
@@ -79,13 +77,13 @@
             content: '';
             position: absolute;
             top: 0;
-            left: -3px;
-            right: -3px;
+            left: -4px;
+            right: -4px;
             height: 8px;
-            border: 3px solid rgba(255, 255, 255, 0.9);
+            border: 3px solid rgba(255, 255, 255, 0.95);
             border-radius: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            z-index: 10;
+            background: rgba(255, 255, 255, 0.35);
+            z-index: 25;
         }
 
         /* Glass shine highlight overlay */
@@ -94,42 +92,60 @@
             position: absolute;
             top: 8px;
             left: 5px;
-            width: 6px;
-            height: 85%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0.05));
+            width: 5px;
+            height: 88%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.03));
             border-radius: 3px;
             pointer-events: none;
-            z-index: 11;
+            z-index: 26;
         }
 
-        /* Liquid unit layer */
+        /* Liquid unit layer (No internal horizontal division lines) */
         .liquid-layer {
             width: 100%;
-            height: 25%;
-            transition: height 0.2s ease, background-color 0.2s ease;
             position: relative;
-            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.25), inset 0 -2px 4px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+            overflow: visible;
+            transition: height 0.05s linear;
         }
 
-        /* Liquid top surface wave animation */
+        /* Liquid surface dynamic wave */
         .liquid-surface-wave {
             position: absolute;
             top: -4px;
-            left: -10%;
-            width: 120%;
+            left: -15%;
+            width: 130%;
             height: 8px;
-            background: rgba(255, 255, 255, 0.35);
-            border-radius: 40%;
-            animation: liquidWave 1.2s infinite ease-in-out alternate;
+            background: rgba(255, 255, 255, 0.38);
+            border-radius: 45%;
+            animation: liquidWave 0.9s infinite ease-in-out alternate;
+            pointer-events: none;
         }
 
         @keyframes liquidWave {
-            0% { transform: translateX(-5%) scaleY(0.8); }
+            0% { transform: translateX(-5%) scaleY(0.7); }
             100% { transform: translateX(5%) scaleY(1.3); }
         }
 
-        /* Liquid Pour SVG Stream */
+        /* Active pouring splash ripples inside bottle */
+        .surface-ripple {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.85);
+            border-radius: 50%;
+            animation: rippleExpand 0.35s infinite ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes rippleExpand {
+            0% { width: 10%; opacity: 0.9; }
+            100% { width: 90%; opacity: 0; }
+        }
+
+        /* Liquid Pour SVG Stream overlay */
         .pour-svg-container {
             position: fixed;
             top: 0;
@@ -137,7 +153,21 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: 45;
+            z-index: 50;
+        }
+
+        /* Dynamic fluid bubble in target bottle */
+        .liquid-bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleUp 0.45s ease-out forwards;
+        }
+
+        @keyframes bubbleUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 0.9; }
+            100% { transform: translateY(-32px) scale(1.3); opacity: 0; }
         }
 
         /* Splash droplet particles */
@@ -146,24 +176,12 @@
             pointer-events: none;
             border-radius: 50%;
             z-index: 60;
-            animation: splashFly 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation: splashFly 0.38s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
         @keyframes splashFly {
-            0% {
-                transform: translate(0, 0) scale(1);
-                opacity: 0.9;
-            }
-            100% {
-                transform: translate(var(--dx), var(--dy)) scale(0.2);
-                opacity: 0;
-            }
-        }
-
-        /* Top meniscus light curve */
-        .liquid-layer:last-child {
-            border-top-left-radius: 3px;
-            border-top-right-radius: 3px;
+            0% { transform: translate(0, 0) scale(1); opacity: 0.95; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
         }
 
         /* Custom tactile gaming buttons */
@@ -188,7 +206,7 @@
 
         /* Modal glass styling */
         .modal-bg {
-            background: rgba(12, 12, 18, 0.85);
+            background: rgba(10, 10, 15, 0.85);
             backdrop-filter: blur(8px);
         }
 
@@ -216,7 +234,7 @@
             border-radius: 4px 4px 2px 2px;
             border: 1.5px solid #5C3E08;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            z-index: 20;
+            z-index: 30;
             animation: corkPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -230,29 +248,24 @@
 
     <!-- TOP HEADER / ACTION BUTTONS -->
     <header class="w-full max-w-md px-4 pt-4 flex justify-between items-center z-20">
-        <!-- Menu / Info Button -->
         <button id="btn-menu" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold">
             <i class="fa-solid fa-bars"></i>
         </button>
 
-        <!-- Restart Button -->
         <button id="btn-restart" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold" title="やり直す">
             <i class="fa-solid fa-rotate-right"></i>
         </button>
 
-        <!-- Undo Move Button -->
         <button id="btn-undo" class="btn-game h-12 px-3 rounded-2xl flex items-center justify-center gap-1.5 text-lg font-extrabold" title="1手戻す">
             <i class="fa-solid fa-rotate-left"></i>
             <span id="undo-count" class="text-base font-black">5</span>
         </button>
 
-        <!-- Add Extra Bottle Helper -->
         <button id="btn-add-tube" class="btn-game h-12 px-3 rounded-2xl flex items-center justify-center gap-1.5 text-base font-extrabold" title="ボトルを追加">
             <i class="fa-solid fa-vial-circle-plus text-lg"></i>
             <span class="text-sm">+1</span>
         </button>
 
-        <!-- Sound Toggle -->
         <button id="btn-sound" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold">
             <i id="sound-icon" class="fa-solid fa-volume-high"></i>
         </button>
@@ -268,9 +281,16 @@
 
     <!-- PLAY AREA FOR TEST TUBES -->
     <main class="w-full max-w-lg flex-1 flex flex-col justify-center items-center px-3 relative my-auto">
-        <!-- Dynamic Liquid Stream Overlay SVG -->
+        <!-- SVG Stream overlay for pouring fluid -->
         <svg id="pour-svg" class="pour-svg-container">
-            <path id="stream-path" fill="none" stroke-linecap="round" />
+            <defs>
+                <filter id="liquid-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+            <path id="stream-path-outer" fill="none" stroke-linecap="round" filter="url(#liquid-glow)" />
+            <path id="stream-path-inner" fill="none" stroke-linecap="round" stroke="#ffffff" stroke-opacity="0.75" />
         </svg>
         <div id="splash-container"></div>
 
@@ -280,9 +300,9 @@
         </div>
     </main>
 
-    <!-- BOTTOM FOOTER CREATOR BADGE -->
+    <!-- FOOTER -->
     <footer class="pb-3 text-center text-xs text-gray-500 font-medium">
-        Water Sort Puzzle &bull; カラフルボトルソート
+        Water Sort Puzzle &bull; シームレスな水の流れ
     </footer>
 
     <!-- VICTORY CELEBRATION MODAL -->
@@ -292,12 +312,12 @@
                 <i class="fa-solid fa-trophy text-4xl text-amber-950"></i>
             </div>
             <h2 class="text-2xl font-black text-amber-300 mt-4">STAGE CLEAR!</h2>
-            <p class="text-gray-300 text-sm mt-1">お見事！すべてのボトルを揃えました！</p>
+            <p class="text-gray-300 text-sm mt-1">美しい水の色揃えが完了しました！</p>
             
             <div class="bg-gray-900/60 rounded-2xl p-3 my-4 flex justify-around text-center border border-gray-700">
                 <div>
                     <div class="text-xs text-gray-400 font-bold">クリア手数</div>
-                    <div id="final-moves" class="text-xl font-black text-white">12</div>
+                    <div id="final-moves" class="text-xl font-black text-white">0</div>
                 </div>
                 <div class="border-r border-gray-700"></div>
                 <div>
@@ -316,12 +336,11 @@
     <!-- PAUSE / LEVEL SELECT MODAL -->
     <div id="menu-modal" class="fixed inset-0 modal-bg flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
         <div class="bg-gray-800 border-2 border-gray-600 rounded-3xl p-6 w-84 max-w-[90vw] text-center shadow-2xl modal-content">
-            <h2 class="text-2xl font-black text-white mb-4">メニュー</h2>
+            <h2 class="text-2xl font-black text-white mb-4">レベル選択</h2>
             
             <div class="space-y-3 mb-6">
-                <div class="text-sm text-gray-300 font-bold mb-2">レベルを選択:</div>
                 <div id="level-grid" class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 text-sm font-bold">
-                    <!-- Level quick-jump buttons injected here -->
+                    <!-- Level quick-jump buttons -->
                 </div>
             </div>
 
@@ -335,11 +354,11 @@
 
     <!-- JAVASCRIPT GAME LOGIC -->
     <script>
-        // Sound Synthesis using Web Audio API (No external sound files required)
         class SoundFX {
             constructor() {
                 this.ctx = null;
                 this.muted = false;
+                this.pourAudioNode = null;
             }
 
             init() {
@@ -349,27 +368,69 @@
                 }
             }
 
-            playPour(fillLevel = 1) {
+            startPourSound(fillLevel) {
                 if (this.muted) return;
                 this.init();
-                // Liquid pitch shifts upward as bottle fills up
-                const baseFreq = 280 + (fillLevel * 75);
-                for (let i = 0; i < 3; i++) {
-                    setTimeout(() => {
-                        if (this.muted) return;
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'sine';
-                        const freq = baseFreq + Math.random() * 80 + i * 30;
-                        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                        osc.frequency.exponentialRampToValueAtTime(freq + 120, this.ctx.currentTime + 0.08);
-                        gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start();
-                        osc.stop(this.ctx.currentTime + 0.08);
-                    }, i * 50);
+                this.stopPourSound();
+
+                const bufferSize = this.ctx.sampleRate * 2;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                const baseFreq = 420 + (fillLevel * 130);
+                filter.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
+                filter.Q.setValueAtTime(3.2, this.ctx.currentTime);
+
+                const osc = this.ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(baseFreq * 1.85, this.ctx.currentTime);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.13, this.ctx.currentTime + 0.08);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start();
+                osc.start();
+
+                this.pourAudioNode = { noise, osc, gain, filter };
+            }
+
+            updatePourPitch(fillLevel) {
+                if (this.pourAudioNode && this.ctx) {
+                    const baseFreq = 440 + (fillLevel * 160);
+                    this.pourAudioNode.filter.frequency.setTargetAtTime(baseFreq, this.ctx.currentTime, 0.04);
+                    this.pourAudioNode.osc.frequency.setTargetAtTime(baseFreq * 1.85, this.ctx.currentTime, 0.04);
+                }
+            }
+
+            stopPourSound() {
+                if (this.pourAudioNode && this.ctx) {
+                    try {
+                        this.pourAudioNode.gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+                        setTimeout(() => {
+                            if (this.pourAudioNode) {
+                                this.pourAudioNode.noise.stop();
+                                this.pourAudioNode.osc.stop();
+                                this.pourAudioNode = null;
+                            }
+                        }, 60);
+                    } catch (e) {
+                        this.pourAudioNode = null;
+                    }
                 }
             }
 
@@ -379,10 +440,10 @@
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(660, this.ctx.currentTime + 0.08);
-                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(460, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(680, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
                 osc.start();
@@ -396,8 +457,8 @@
                 const gain = this.ctx.createGain();
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(120, this.ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(110, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
                 gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
@@ -420,7 +481,7 @@
                         const gain = this.ctx.createGain();
                         osc.type = 'sine';
                         osc.frequency.setValueAtTime(note.f, this.ctx.currentTime);
-                        gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                        gain.gain.setValueAtTime(0.22, this.ctx.currentTime);
                         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + note.d);
                         osc.connect(gain);
                         gain.connect(this.ctx.destination);
@@ -434,27 +495,25 @@
 
         const audio = new SoundFX();
 
-        // Vibrant liquid color palette definitions
         const COLOR_PALETTE = [
-            { id: 1, name: 'Red', hex: '#FF3B30' },
-            { id: 2, name: 'Blue', hex: '#007AFF' },
-            { id: 3, name: 'Green', hex: '#34C759' },
-            { id: 4, name: 'Orange', hex: '#FF9500' },
-            { id: 5, name: 'Pink', hex: '#FF2D55' },
-            { id: 6, name: 'Purple', hex: '#AF52DE' },
-            { id: 7, name: 'Cyan', hex: '#5AC8FA' },
-            { id: 8, name: 'Yellow', hex: '#FFCC00' },
-            { id: 9, name: 'Grey', hex: '#8E8E93' },
-            { id: 10, name: 'Mint', hex: '#00C7BE' },
-            { id: 11, name: 'Brown', hex: '#A2845E' },
-            { id: 12, name: 'Indigo', hex: '#5856D6' }
+            { id: 1, name: 'Red', hex: '#FF3B30', darkHex: '#C71C12' },
+            { id: 2, name: 'Blue', hex: '#007AFF', darkHex: '#0051B3' },
+            { id: 3, name: 'Green', hex: '#34C759', darkHex: '#228B3B' },
+            { id: 4, name: 'Orange', hex: '#FF9500', darkHex: '#C77000' },
+            { id: 5, name: 'Pink', hex: '#FF2D55', darkHex: '#C71236' },
+            { id: 6, name: 'Purple', hex: '#AF52DE', darkHex: '#7C2FB0' },
+            { id: 7, name: 'Cyan', hex: '#5AC8FA', darkHex: '#259AD3' },
+            { id: 8, name: 'Yellow', hex: '#FFCC00', darkHex: '#C79A00' },
+            { id: 9, name: 'Grey', hex: '#8E8E93', darkHex: '#5C5C60' },
+            { id: 10, name: 'Mint', hex: '#00C7BE', darkHex: '#008C86' },
+            { id: 11, name: 'Brown', hex: '#A2845E', darkHex: '#6F5636' },
+            { id: 12, name: 'Indigo', hex: '#5856D6', darkHex: '#38369A' }
         ];
 
         const TUBE_CAPACITY = 4;
 
-        // Core Game State
         let currentLevel = 1;
-        let tubes = []; // Array of arrays containing color IDs
+        let tubes = [];
         let initialTubesState = [];
         let selectedTubeIndex = null;
         let isAnimating = false;
@@ -462,9 +521,26 @@
         let moveCount = 0;
         let undoRemaining = 5;
 
-        /**
-         * Counts consecutive top liquid blocks of the same color.
-         */
+        // Group consecutive same colors into a single block to remove inner division lines
+        function getGroupedLayers(tubeContents) {
+            if (!tubeContents || tubeContents.length === 0) return [];
+            const groups = [];
+            let currentColor = tubeContents[0];
+            let count = 1;
+
+            for (let i = 1; i < tubeContents.length; i++) {
+                if (tubeContents[i] === currentColor) {
+                    count++;
+                } else {
+                    groups.push({ colorId: currentColor, count: count });
+                    currentColor = tubeContents[i];
+                    count = 1;
+                }
+            }
+            groups.push({ colorId: currentColor, count: count });
+            return groups;
+        }
+
         function getTopColorGroupCount(tube) {
             if (!tube || tube.length === 0) return 0;
             const topColor = tube[tube.length - 1];
@@ -476,34 +552,25 @@
             return count;
         }
 
-        /**
-         * Checks if pouring from source tube to target tube is valid.
-         */
         function canPour(fromIdx, toIdx) {
             if (fromIdx === toIdx) return false;
             const source = tubes[fromIdx];
             const dest = tubes[toIdx];
 
-            if (!source || source.length === 0) return false; // Source is empty
-            if (dest.length >= TUBE_CAPACITY) return false;   // Target is full
+            if (!source || source.length === 0) return false;
+            if (dest.length >= TUBE_CAPACITY) return false;
 
-            // Destination is empty OR top colors match
             if (dest.length === 0) return true;
             return source[source.length - 1] === dest[dest.length - 1];
         }
 
-        /**
-         * Handles tube tap / click interaction.
-         */
         function handleTubeClick(idx) {
             if (isAnimating) return;
 
-            // First click: select bottle
             if (selectedTubeIndex === null) {
                 const clickedTube = tubes[idx];
-                if (!clickedTube || clickedTube.length === 0) return; // Cannot select empty bottle
+                if (!clickedTube || clickedTube.length === 0) return;
 
-                // Check if bottle is already completed (4 of same color)
                 const isComplete = clickedTube.length === TUBE_CAPACITY && clickedTube.every(c => c === clickedTube[0]);
                 if (isComplete) {
                     shakeTube(idx);
@@ -517,7 +584,6 @@
                 return;
             }
 
-            // Second click: deselect if clicking the same bottle
             if (selectedTubeIndex === idx) {
                 selectedTubeIndex = null;
                 audio.playSelect();
@@ -525,17 +591,14 @@
                 return;
             }
 
-            // Second click: attempt to pour from selected bottle to target bottle
             if (canPour(selectedTubeIndex, idx)) {
                 const from = selectedTubeIndex;
                 selectedTubeIndex = null;
                 executePourAnimation(from, idx);
             } else {
-                // Invalid move: shake target bottle and play error sound
                 shakeTube(idx);
                 audio.playError();
 
-                // If user clicks another non-empty bottle, switch selection to it
                 if (tubes[idx] && tubes[idx].length > 0) {
                     const isComplete = tubes[idx].length === TUBE_CAPACITY && tubes[idx].every(c => c === tubes[idx][0]);
                     if (!isComplete) {
@@ -546,9 +609,6 @@
             }
         }
 
-        /**
-         * Shakes a tube visually for feedback on invalid moves.
-         */
         function shakeTube(idx) {
             const wrapper = document.querySelector(`.tube-wrapper[data-index="${idx}"]`);
             if (wrapper) {
@@ -557,9 +617,6 @@
             }
         }
 
-        /**
-         * Generates guaranteed solvable levels.
-         */
         function generateSolvableLevel(levelNum) {
             let numColors = 2;
             if (levelNum >= 2) numColors = 3;
@@ -582,7 +639,7 @@
                 state.push([]);
             }
 
-            const shuffleSteps = 30 + levelNum * 6;
+            const shuffleSteps = 35 + levelNum * 6;
             let lastFrom = -1;
             let lastTo = -1;
 
@@ -619,9 +676,6 @@
             return state;
         }
 
-        /**
-         * Renders the current tube layout dynamically into 1 or 2 rows.
-         */
         function renderBoard() {
             const container = document.getElementById('tubes-container');
             container.innerHTML = '';
@@ -646,7 +700,6 @@
                 tubeEl.className = 'tube';
                 tubeEl.id = `tube-${idx}`;
 
-                // Check if bottle is fully completed with 1 color
                 const isComplete = tubeContents.length === TUBE_CAPACITY && tubeContents.every(c => c === tubeContents[0]);
                 if (isComplete) {
                     tubeEl.classList.add('completed');
@@ -655,14 +708,20 @@
                     tubeEl.appendChild(cork);
                 }
 
-                // Render Liquid Layers
-                tubeContents.forEach((colorId, i) => {
-                    const colorObj = COLOR_PALETTE.find(c => c.id === colorId) || COLOR_PALETTE[0];
+                // Group consecutive same colors into a single seamless div (NO internal dividing lines)
+                const groupedLayers = getGroupedLayers(tubeContents);
+
+                groupedLayers.forEach((group, gIdx) => {
+                    const colorObj = COLOR_PALETTE.find(c => c.id === group.colorId) || COLOR_PALETTE[0];
                     const layer = document.createElement('div');
                     layer.className = 'liquid-layer';
-                    layer.style.backgroundColor = colorObj.hex;
                     
-                    if (i === tubeContents.length - 1) {
+                    // Rich gradient for smooth single column look
+                    layer.style.background = `linear-gradient(180deg, ${colorObj.hex} 0%, ${colorObj.darkHex} 100%)`;
+                    layer.style.height = `${(group.count / TUBE_CAPACITY) * 100}%`;
+
+                    // Only top layer has surface wave
+                    if (gIdx === groupedLayers.length - 1) {
                         const wave = document.createElement('div');
                         wave.className = 'liquid-surface-wave';
                         layer.appendChild(wave);
@@ -691,25 +750,22 @@
             document.getElementById('btn-undo').disabled = moveHistory.length === 0 || undoRemaining <= 0;
         }
 
-        /**
-         * Generates liquid splash particle effects.
-         */
         function triggerLiquidSplash(x, y, colorHex) {
             const container = document.getElementById('splash-container');
-            const particleCount = 6 + Math.floor(Math.random() * 4);
+            const particleCount = 3 + Math.floor(Math.random() * 3);
 
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'splash-particle';
-                const size = 4 + Math.random() * 6;
+                const size = 3 + Math.random() * 4;
                 particle.style.width = `${size}px`;
                 particle.style.height = `${size}px`;
                 particle.style.backgroundColor = colorHex;
                 particle.style.left = `${x}px`;
                 particle.style.top = `${y}px`;
 
-                const angle = (Math.PI * (0.1 + Math.random() * 0.8));
-                const distance = 15 + Math.random() * 25;
+                const angle = (Math.PI * (0.2 + Math.random() * 0.6));
+                const distance = 10 + Math.random() * 18;
                 const dx = Math.cos(angle) * (Math.random() > 0.5 ? distance : -distance);
                 const dy = -Math.sin(angle) * distance;
 
@@ -717,20 +773,35 @@
                 particle.style.setProperty('--dy', `${dy}px`);
 
                 container.appendChild(particle);
-
-                setTimeout(() => particle.remove(), 400);
+                setTimeout(() => particle.remove(), 380);
             }
         }
 
-        /**
-         * Animates fluid transfer step by step.
-         */
+        function triggerTargetBubbles(tubeEl) {
+            const topLayer = tubeEl.lastElementChild;
+            if (!topLayer) return;
+
+            for (let i = 0; i < 2; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'liquid-bubble';
+                const size = 3 + Math.random() * 3.5;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${20 + Math.random() * 60}%`;
+                bubble.style.bottom = '4px';
+                topLayer.appendChild(bubble);
+
+                setTimeout(() => bubble.remove(), 450);
+            }
+        }
+
         function executePourAnimation(fromIdx, toIdx) {
             isAnimating = true;
 
             const fromWrapper = document.querySelector(`.tube-wrapper[data-index="${fromIdx}"]`);
             const toWrapper = document.querySelector(`.tube-wrapper[data-index="${toIdx}"]`);
-            const pathEl = document.getElementById('stream-path');
+            const pathOuter = document.getElementById('stream-path-outer');
+            const pathInner = document.getElementById('stream-path-inner');
 
             if (!fromWrapper || !toWrapper) {
                 finishPourLogic(fromIdx, toIdx);
@@ -749,83 +820,126 @@
             const toRect = toWrapper.getBoundingClientRect();
 
             const pourLeft = fromRect.left > toRect.left;
-            const targetX = toRect.left + (toRect.width / 2) - fromRect.left + (pourLeft ? 18 : -62);
-            const targetY = toRect.top - fromRect.top - 42;
-            const rotationDeg = pourLeft ? -62 : 62;
+            const targetX = toRect.left + (toRect.width / 2) - fromRect.left + (pourLeft ? 22 : -68);
+            const targetY = toRect.top - fromRect.top - 48;
+            const rotationDeg = pourLeft ? -68 : 68;
 
+            // Lift and tilt source bottle
             fromWrapper.style.zIndex = '40';
-            fromWrapper.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1)';
+            fromWrapper.style.transition = 'transform 0.38s cubic-bezier(0.2, 0.8, 0.25, 1)';
             fromWrapper.style.transform = `translate(${targetX}px, ${targetY}px) rotate(${rotationDeg}deg)`;
 
             setTimeout(() => {
                 const spoutX = pourLeft ? toRect.left + 22 : toRect.left + toRect.width - 22;
-                const spoutY = toRect.top + 12;
+                const spoutY = toRect.top + 10;
 
-                let currentDestFill = dest.length;
-                let poursCompleted = 0;
+                const destTubeEl = document.getElementById(`tube-${toIdx}`);
+                const sourceTubeEl = document.getElementById(`tube-${fromIdx}`);
 
-                function pourNextUnit() {
-                    if (poursCompleted >= unitsToPour) {
-                        pathEl.setAttribute('d', '');
-                        setTimeout(() => {
-                            fromWrapper.style.transform = 'none';
-                            fromWrapper.style.zIndex = '1';
-                            setTimeout(() => {
-                                isAnimating = false;
-                                selectedTubeIndex = null;
-                                moveCount++;
-                                renderBoard();
-                                checkCompletionAndWin();
-                            }, 200);
-                        }, 100);
-                        return;
-                    }
+                const startDestCount = dest.length;
+                const totalPourDuration = unitsToPour * 450; 
+                const startTime = performance.now();
 
-                    audio.playPour(currentDestFill + 1);
+                // Build / locate dynamic rising layer in destination tube
+                let destTopGroupLayer = null;
+                const existingDestGroups = getGroupedLayers(dest);
+                const lastDestGroup = existingDestGroups.length > 0 ? existingDestGroups[existingDestGroups.length - 1] : null;
 
-                    const destTubeEl = document.getElementById(`tube-${toIdx}`);
-                    const tubeHeight = 170;
-                    const layerHeight = tubeHeight / TUBE_CAPACITY;
-                    const landingY = toRect.bottom - ((currentDestFill + 0.5) * layerHeight);
+                if (lastDestGroup && lastDestGroup.colorId === pourColorId) {
+                    destTopGroupLayer = destTubeEl.lastElementChild;
+                } else {
+                    destTopGroupLayer = document.createElement('div');
+                    destTopGroupLayer.className = 'liquid-layer';
+                    destTopGroupLayer.style.background = `linear-gradient(180deg, ${pourColorObj.hex} 0%, ${pourColorObj.darkHex} 100%)`;
+                    destTopGroupLayer.style.height = '0%';
 
-                    const controlX = (spoutX + (toRect.left + toRect.width / 2)) / 2;
-                    const controlY = spoutY + 15;
-                    const destX = toRect.left + (toRect.width / 2);
+                    const ripple = document.createElement('div');
+                    ripple.className = 'surface-ripple';
+                    destTopGroupLayer.appendChild(ripple);
 
-                    const dPath = `M ${spoutX} ${spoutY} Q ${controlX} ${controlY} ${destX} ${landingY}`;
-                    pathEl.setAttribute('d', dPath);
-                    pathEl.setAttribute('stroke', pourColorObj.hex);
-                    pathEl.setAttribute('stroke-width', '7');
+                    const wave = document.createElement('div');
+                    wave.className = 'liquid-surface-wave';
+                    destTopGroupLayer.appendChild(wave);
 
-                    triggerLiquidSplash(destX, landingY, pourColorObj.hex);
-
-                    const sourceTubeEl = document.getElementById(`tube-${fromIdx}`);
-                    const sourceLayers = sourceTubeEl.querySelectorAll('.liquid-layer');
-                    if (sourceLayers.length > 0) {
-                        const topSourceLayer = sourceLayers[sourceLayers.length - 1];
-                        topSourceLayer.style.height = '0%';
-                    }
-
-                    const newLayer = document.createElement('div');
-                    newLayer.className = 'liquid-layer';
-                    newLayer.style.backgroundColor = pourColorObj.hex;
-                    newLayer.style.height = '0%';
-                    destTubeEl.appendChild(newLayer);
-
-                    requestAnimationFrame(() => {
-                        newLayer.style.height = '25%';
-                    });
-
-                    dest.push(source.pop());
-                    currentDestFill++;
-                    poursCompleted++;
-
-                    setTimeout(pourNextUnit, 260);
+                    destTubeEl.appendChild(destTopGroupLayer);
                 }
 
-                pourNextUnit();
+                const initialDestLayerHeightUnits = lastDestGroup && lastDestGroup.colorId === pourColorId ? lastDestGroup.count : 0;
 
-            }, 350);
+                audio.startPourSound(startDestCount);
+
+                function animatePourLoop(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(1, elapsed / totalPourDuration);
+
+                    // Smooth fluid stream width modulation using Math.sin curve
+                    const streamWidth = Math.sin(progress * Math.PI) * 7.5 + 1.5;
+
+                    // Update destination layer height seamlessly
+                    const currentUnitsPoured = progress * unitsToPour;
+                    const newDestLayerUnits = initialDestLayerHeightUnits + currentUnitsPoured;
+                    destTopGroupLayer.style.height = `${(newDestLayerUnits / TUBE_CAPACITY) * 100}%`;
+
+                    // Drain top group of source tube seamlessly
+                    const sourceTopLayer = sourceTubeEl.lastElementChild;
+                    if (sourceTopLayer) {
+                        const sourceGroups = getGroupedLayers(source);
+                        const topGroup = sourceGroups[sourceGroups.length - 1];
+                        const remainingTopUnits = Math.max(0, topGroup.count - currentUnitsPoured);
+                        sourceTopLayer.style.height = `${(remainingTopUnits / TUBE_CAPACITY) * 100}%`;
+                    }
+
+                    // Calculate fluid arrival point
+                    const totalCurrentUnitsInDest = startDestCount + currentUnitsPoured;
+                    const tubeHeight = 180;
+                    const landingY = toRect.bottom - (totalCurrentUnitsInDest * (tubeHeight / TUBE_CAPACITY));
+                    const destX = toRect.left + (toRect.width / 2);
+
+                    if (progress < 1) {
+                        // Natural fluid trajectory curve
+                        const controlY = (spoutY + landingY) / 2 + 8;
+                        const pathD = `M ${spoutX} ${spoutY} Q ${(spoutX + destX) / 2} ${controlY} ${destX} ${landingY}`;
+                        
+                        pathOuter.setAttribute('d', pathD);
+                        pathOuter.setAttribute('stroke', pourColorObj.hex);
+                        pathOuter.setAttribute('stroke-width', streamWidth);
+
+                        pathInner.setAttribute('d', pathD);
+                        pathInner.setAttribute('stroke-width', Math.max(1, streamWidth * 0.38));
+
+                        if (Math.random() < 0.38) {
+                            triggerLiquidSplash(destX, landingY, pourColorObj.hex);
+                            triggerTargetBubbles(destTubeEl);
+                        }
+
+                        audio.updatePourPitch(totalCurrentUnitsInDest);
+                        requestAnimationFrame(animatePourLoop);
+                    } else {
+                        // Pouring Complete
+                        pathOuter.setAttribute('d', '');
+                        pathInner.setAttribute('d', '');
+                        audio.stopPourSound();
+
+                        for (let i = 0; i < unitsToPour; i++) {
+                            dest.push(source.pop());
+                        }
+
+                        fromWrapper.style.transform = 'none';
+                        fromWrapper.style.zIndex = '1';
+
+                        setTimeout(() => {
+                            isAnimating = false;
+                            selectedTubeIndex = null;
+                            moveCount++;
+                            renderBoard();
+                            checkCompletionAndWin();
+                        }, 220);
+                    }
+                }
+
+                requestAnimationFrame(animatePourLoop);
+
+            }, 380);
         }
 
         function finishPourLogic(fromIdx, toIdx) {
@@ -893,8 +1007,8 @@
         function triggerWinModal() {
             if (window.confetti) {
                 confetti({
-                    particleCount: 100,
-                    spread: 70,
+                    particleCount: 120,
+                    spread: 80,
                     origin: { y: 0.6 }
                 });
             }
