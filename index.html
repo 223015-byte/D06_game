@@ -19,111 +19,107 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-            background-color: #121319;
+            background-color: #1a1c23;
             background-image: 
-                radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.04) 2px, transparent 0),
-                radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.02) 2px, transparent 0);
+                radial-gradient(circle at 25px 25px, rgba(255, 255, 255, 0.03) 2px, transparent 0),
+                radial-gradient(circle at 75px 75px, rgba(255, 255, 255, 0.015) 2px, transparent 0);
             background-size: 100px 100px;
             overflow: hidden;
         }
 
-        /* Tube Container & Glass styling */
+        /* Tube Container & Clean 2D Glass styling */
         .tube-wrapper {
             position: relative;
             cursor: pointer;
-            transition: transform 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .tube-wrapper.selected {
-            transform: translateY(-26px) scale(1.06);
+            transform: translateY(-24px);
         }
 
         @keyframes tubeShake {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-6px); }
-            40%, 80% { transform: translateX(6px); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
         }
 
         .tube-wrapper.shake {
             animation: tubeShake 0.35s ease-in-out;
         }
 
+        /* Thinner border and clean flat 2D look */
         .tube {
             position: relative;
-            width: 56px;
-            height: 180px;
-            border: 3.5px solid rgba(255, 255, 255, 0.88);
+            width: 52px;
+            height: 176px;
+            border: 2px solid rgba(255, 255, 255, 0.65);
             border-top: none;
-            border-bottom-left-radius: 28px;
-            border-bottom-right-radius: 28px;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
+            border-bottom-left-radius: 26px;
+            border-bottom-right-radius: 26px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(6px);
-            box-shadow: 
-                0 12px 28px rgba(0, 0, 0, 0.55),
-                inset 2px 0 8px rgba(255, 255, 255, 0.25),
-                inset -2px 0 8px rgba(0, 0, 0, 0.45);
+            background: rgba(255, 255, 255, 0.04);
             display: flex;
             flex-direction: column-reverse;
         }
 
-        /* Glass lip top edge */
+        /* Thin flat glass lip top edge */
         .tube::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -4px;
-            right: -4px;
-            height: 8px;
-            border: 3px solid rgba(255, 255, 255, 0.95);
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.35);
+            left: -2px;
+            right: -2px;
+            height: 4px;
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
             z-index: 25;
         }
 
-        /* Glass shine highlight overlay */
+        /* Subtle 2D vertical highlight */
         .tube::after {
             content: '';
             position: absolute;
-            top: 8px;
-            left: 5px;
-            width: 5px;
-            height: 88%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.5), rgba(255,255,255,0.03));
-            border-radius: 3px;
+            top: 4px;
+            left: 4px;
+            width: 3px;
+            height: 90%;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
             pointer-events: none;
             z-index: 26;
         }
 
-        /* Liquid unit layer (No internal horizontal division lines) */
+        /* Liquid unit layer (Flat pastel fill, no dark gradient) */
         .liquid-layer {
             width: 100%;
             position: relative;
             overflow: visible;
-            transition: height 0.05s linear;
+            transition: height 0.15s ease-out;
         }
 
-        /* Liquid surface dynamic wave */
+        /* Subtle liquid surface wave */
         .liquid-surface-wave {
             position: absolute;
-            top: -4px;
-            left: -15%;
-            width: 130%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.38);
-            border-radius: 45%;
-            animation: liquidWave 0.9s infinite ease-in-out alternate;
+            top: -3px;
+            left: -10%;
+            width: 120%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: liquidWave 1.1s infinite ease-in-out alternate;
             pointer-events: none;
         }
 
         @keyframes liquidWave {
-            0% { transform: translateX(-5%) scaleY(0.7); }
-            100% { transform: translateX(5%) scaleY(1.3); }
+            0% { transform: translateX(-4%) scaleY(0.8); }
+            100% { transform: translateX(4%) scaleY(1.2); }
         }
 
         /* Active pouring splash ripples inside bottle */
@@ -154,6 +150,7 @@
             height: 100vh;
             pointer-events: none;
             z-index: 50;
+            display: none;
         }
 
         /* Dynamic fluid bubble in target bottle */
@@ -212,34 +209,33 @@
 
         /* Completed Tube Sparkle Glow */
         @keyframes tubeCompleteGlow {
-            0% { box-shadow: 0 0 5px rgba(255,215,0,0.3); }
-            50% { box-shadow: 0 0 25px rgba(255,215,0,0.9), 0 0 10px rgba(255,255,255,0.8); }
-            100% { box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+            0% { box-shadow: 0 0 4px rgba(255,223,128,0.3); }
+            50% { box-shadow: 0 0 16px rgba(255,223,128,0.7); }
+            100% { box-shadow: 0 0 6px rgba(255,223,128,0.4); }
         }
 
         .tube.completed {
             animation: tubeCompleteGlow 1.5s infinite alternate;
-            border-color: #FFE600;
+            border-color: #FFE680;
         }
 
-        /* Cork stopper for completed tubes */
+        /* Cork stopper for completed tubes (2D Flat) */
         .cork {
             position: absolute;
-            top: -12px;
+            top: -10px;
             left: 50%;
             transform: translateX(-50%);
-            width: 36px;
-            height: 16px;
-            background: linear-gradient(180deg, #C29B38 0%, #8C6218 100%);
-            border-radius: 4px 4px 2px 2px;
-            border: 1.5px solid #5C3E08;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            width: 34px;
+            height: 14px;
+            background: #C4A47C;
+            border-radius: 3px 3px 2px 2px;
+            border: 1.5px solid #8C6F4B;
             z-index: 30;
             animation: corkPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         @keyframes corkPop {
-            0% { transform: translate(-50%, -20px) scale(0.5); opacity: 0; }
+            0% { transform: translate(-50%, -15px) scale(0.6); opacity: 0; }
             100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
         }
     </style>
@@ -248,7 +244,7 @@
 
     <!-- TOP HEADER / ACTION BUTTONS -->
     <header class="w-full max-w-md px-4 pt-4 flex justify-between items-center z-20">
-        <button id="btn-menu" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold">
+        <button id="btn-menu" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold" title="メニュー">
             <i class="fa-solid fa-bars"></i>
         </button>
 
@@ -266,7 +262,7 @@
             <span class="text-sm">+1</span>
         </button>
 
-        <button id="btn-sound" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold">
+        <button id="btn-sound" class="btn-game w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold" title="サウンド切り替え">
             <i id="sound-icon" class="fa-solid fa-volume-high"></i>
         </button>
     </header>
@@ -365,6 +361,9 @@
                 if (!this.ctx) {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
                 }
             }
 
@@ -495,19 +494,20 @@
 
         const audio = new SoundFX();
 
+        /* Soft 2D Pastel Color Palette */
         const COLOR_PALETTE = [
-            { id: 1, name: 'Red', hex: '#FF3B30', darkHex: '#C71C12' },
-            { id: 2, name: 'Blue', hex: '#007AFF', darkHex: '#0051B3' },
-            { id: 3, name: 'Green', hex: '#34C759', darkHex: '#228B3B' },
-            { id: 4, name: 'Orange', hex: '#FF9500', darkHex: '#C77000' },
-            { id: 5, name: 'Pink', hex: '#FF2D55', darkHex: '#C71236' },
-            { id: 6, name: 'Purple', hex: '#AF52DE', darkHex: '#7C2FB0' },
-            { id: 7, name: 'Cyan', hex: '#5AC8FA', darkHex: '#259AD3' },
-            { id: 8, name: 'Yellow', hex: '#FFCC00', darkHex: '#C79A00' },
-            { id: 9, name: 'Grey', hex: '#8E8E93', darkHex: '#5C5C60' },
-            { id: 10, name: 'Mint', hex: '#00C7BE', darkHex: '#008C86' },
-            { id: 11, name: 'Brown', hex: '#A2845E', darkHex: '#6F5636' },
-            { id: 12, name: 'Indigo', hex: '#5856D6', darkHex: '#38369A' }
+            { id: 1, name: 'Pastel Red', hex: '#FF8A80', darkHex: '#FF8A80' },
+            { id: 2, name: 'Pastel Blue', hex: '#80D8FF', darkHex: '#80D8FF' },
+            { id: 3, name: 'Pastel Green', hex: '#B9F6CA', darkHex: '#B9F6CA' },
+            { id: 4, name: 'Pastel Orange', hex: '#FFD180', darkHex: '#FFD180' },
+            { id: 5, name: 'Pastel Pink', hex: '#FF80AB', darkHex: '#FF80AB' },
+            { id: 6, name: 'Pastel Purple', hex: '#EA80FC', darkHex: '#EA80FC' },
+            { id: 7, name: 'Pastel Cyan', hex: '#A7F0F9', darkHex: '#A7F0F9' },
+            { id: 8, name: 'Pastel Yellow', hex: '#FFE57F', darkHex: '#FFE57F' },
+            { id: 9, name: 'Pastel Grey', hex: '#CFD8DC', darkHex: '#CFD8DC' },
+            { id: 10, name: 'Pastel Mint', hex: '#A7F3D0', darkHex: '#A7F3D0' },
+            { id: 11, name: 'Pastel Brown', hex: '#D7CCC8', darkHex: '#D7CCC8' },
+            { id: 12, name: 'Pastel Indigo', hex: '#C5CAE9', darkHex: '#C5CAE9' }
         ];
 
         const TUBE_CAPACITY = 4;
@@ -539,17 +539,6 @@
             }
             groups.push({ colorId: currentColor, count: count });
             return groups;
-        }
-
-        function getTopColorGroupCount(tube) {
-            if (!tube || tube.length === 0) return 0;
-            const topColor = tube[tube.length - 1];
-            let count = 0;
-            for (let i = tube.length - 1; i >= 0; i--) {
-                if (tube[i] === topColor) count++;
-                else break;
-            }
-            return count;
         }
 
         function canPour(fromIdx, toIdx) {
@@ -716,8 +705,8 @@
                     const layer = document.createElement('div');
                     layer.className = 'liquid-layer';
                     
-                    // Rich gradient for smooth single column look
-                    layer.style.background = `linear-gradient(180deg, ${colorObj.hex} 0%, ${colorObj.darkHex} 100%)`;
+                    // Flat pastel fill for 2D aesthetics
+                    layer.style.backgroundColor = colorObj.hex;
                     layer.style.height = `${(group.count / TUBE_CAPACITY) * 100}%`;
 
                     // Only top layer has surface wave
@@ -802,317 +791,203 @@
             const toWrapper = document.querySelector(`.tube-wrapper[data-index="${toIdx}"]`);
             const pathOuter = document.getElementById('stream-path-outer');
             const pathInner = document.getElementById('stream-path-inner');
+            const pourSvg = document.getElementById('pour-svg');
 
             if (!fromWrapper || !toWrapper) {
-                finishPourLogic(fromIdx, toIdx);
+                isAnimating = false;
                 return;
             }
 
-            saveMoveState();
+            // Save history for Undo feature
+            moveHistory.push({
+                tubes: JSON.parse(JSON.stringify(tubes)),
+                moveCount: moveCount
+            });
+            moveCount++;
 
-            const source = tubes[fromIdx];
-            const dest = tubes[toIdx];
-            const pourColorId = source[source.length - 1];
-            const pourColorObj = COLOR_PALETTE.find(c => c.id === pourColorId);
-            const unitsToPour = Math.min(getTopColorGroupCount(source), TUBE_CAPACITY - dest.length);
+            const colorToPour = tubes[fromIdx][tubes[fromIdx].length - 1];
+            const colorObj = COLOR_PALETTE.find(c => c.id === colorToPour) || COLOR_PALETTE[0];
+
+            // Count how many units of the same color can be transferred
+            let pourAmount = 0;
+            const topColor = tubes[fromIdx][tubes[fromIdx].length - 1];
+            for (let i = tubes[fromIdx].length - 1; i >= 0; i--) {
+                if (tubes[fromIdx][i] === topColor && (tubes[toIdx].length + pourAmount) < TUBE_CAPACITY) {
+                    pourAmount++;
+                } else {
+                    break;
+                }
+            }
 
             const fromRect = fromWrapper.getBoundingClientRect();
             const toRect = toWrapper.getBoundingClientRect();
 
-            const pourLeft = fromRect.left > toRect.left;
-            const targetX = toRect.left + (toRect.width / 2) - fromRect.left + (pourLeft ? 22 : -68);
-            const targetY = toRect.top - fromRect.top - 48;
-            const rotationDeg = pourLeft ? -68 : 68;
+            // Calculate start and end positions for fluid stream
+            const startX = fromRect.left + fromRect.width / 2;
+            const startY = fromRect.top + 10;
+            const endX = toRect.left + toRect.width / 2;
+            const endY = toRect.top + 30;
 
-            // Lift and tilt source bottle
-            fromWrapper.style.zIndex = '40';
-            fromWrapper.style.transition = 'transform 0.38s cubic-bezier(0.2, 0.8, 0.25, 1)';
-            fromWrapper.style.transform = `translate(${targetX}px, ${targetY}px) rotate(${rotationDeg}deg)`;
+            // Draw stream curve in SVG
+            const controlX = (startX + endX) / 2;
+            const controlY = Math.min(startY, endY) - 50;
+            const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
 
-            setTimeout(() => {
-                const spoutX = pourLeft ? toRect.left + 22 : toRect.left + toRect.width - 22;
-                const spoutY = toRect.top + 10;
+            pathOuter.setAttribute('d', d);
+            pathOuter.setAttribute('stroke', colorObj.hex);
+            pathOuter.setAttribute('stroke-width', '8');
+            
+            pathInner.setAttribute('d', d);
+            pathInner.setAttribute('stroke-width', '3');
 
-                const destTubeEl = document.getElementById(`tube-${toIdx}`);
-                const sourceTubeEl = document.getElementById(`tube-${fromIdx}`);
+            pourSvg.style.display = 'block';
 
-                const startDestCount = dest.length;
-                const totalPourDuration = unitsToPour * 450; 
-                const startTime = performance.now();
+            // Play pouring sound effect based on destination fill height
+            audio.startPourSound(tubes[toIdx].length / TUBE_CAPACITY);
 
-                // Build / locate dynamic rising layer in destination tube
-                let destTopGroupLayer = null;
-                const existingDestGroups = getGroupedLayers(dest);
-                const lastDestGroup = existingDestGroups.length > 0 ? existingDestGroups[existingDestGroups.length - 1] : null;
+            let stepsDone = 0;
+            const pourInterval = setInterval(() => {
+                if (stepsDone < pourAmount) {
+                    const unit = tubes[fromIdx].pop();
+                    tubes[toIdx].push(unit);
+                    stepsDone++;
 
-                if (lastDestGroup && lastDestGroup.colorId === pourColorId) {
-                    destTopGroupLayer = destTubeEl.lastElementChild;
+                    audio.updatePourPitch(tubes[toIdx].length / TUBE_CAPACITY);
+                    triggerLiquidSplash(endX, endY, colorObj.hex);
+                    renderBoard();
+
+                    const toTubeEl = document.getElementById(`tube-${toIdx}`);
+                    if (toTubeEl) triggerTargetBubbles(toTubeEl);
                 } else {
-                    destTopGroupLayer = document.createElement('div');
-                    destTopGroupLayer.className = 'liquid-layer';
-                    destTopGroupLayer.style.background = `linear-gradient(180deg, ${pourColorObj.hex} 0%, ${pourColorObj.darkHex} 100%)`;
-                    destTopGroupLayer.style.height = '0%';
+                    clearInterval(pourInterval);
+                    audio.stopPourSound();
 
-                    const ripple = document.createElement('div');
-                    ripple.className = 'surface-ripple';
-                    destTopGroupLayer.appendChild(ripple);
+                    // Hide SVG stream line
+                    pathOuter.setAttribute('d', '');
+                    pathInner.setAttribute('d', '');
+                    pourSvg.style.display = 'none';
 
-                    const wave = document.createElement('div');
-                    wave.className = 'liquid-surface-wave';
-                    destTopGroupLayer.appendChild(wave);
-
-                    destTubeEl.appendChild(destTopGroupLayer);
+                    isAnimating = false;
+                    renderBoard();
+                    checkWinCondition();
                 }
-
-                const initialDestLayerHeightUnits = lastDestGroup && lastDestGroup.colorId === pourColorId ? lastDestGroup.count : 0;
-
-                audio.startPourSound(startDestCount);
-
-                function animatePourLoop(currentTime) {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(1, elapsed / totalPourDuration);
-
-                    // Smooth fluid stream width modulation using Math.sin curve
-                    const streamWidth = Math.sin(progress * Math.PI) * 7.5 + 1.5;
-
-                    // Update destination layer height seamlessly
-                    const currentUnitsPoured = progress * unitsToPour;
-                    const newDestLayerUnits = initialDestLayerHeightUnits + currentUnitsPoured;
-                    destTopGroupLayer.style.height = `${(newDestLayerUnits / TUBE_CAPACITY) * 100}%`;
-
-                    // Drain top group of source tube seamlessly
-                    const sourceTopLayer = sourceTubeEl.lastElementChild;
-                    if (sourceTopLayer) {
-                        const sourceGroups = getGroupedLayers(source);
-                        const topGroup = sourceGroups[sourceGroups.length - 1];
-                        const remainingTopUnits = Math.max(0, topGroup.count - currentUnitsPoured);
-                        sourceTopLayer.style.height = `${(remainingTopUnits / TUBE_CAPACITY) * 100}%`;
-                    }
-
-                    // Calculate fluid arrival point
-                    const totalCurrentUnitsInDest = startDestCount + currentUnitsPoured;
-                    const tubeHeight = 180;
-                    const landingY = toRect.bottom - (totalCurrentUnitsInDest * (tubeHeight / TUBE_CAPACITY));
-                    const destX = toRect.left + (toRect.width / 2);
-
-                    if (progress < 1) {
-                        // Natural fluid trajectory curve
-                        const controlY = (spoutY + landingY) / 2 + 8;
-                        const pathD = `M ${spoutX} ${spoutY} Q ${(spoutX + destX) / 2} ${controlY} ${destX} ${landingY}`;
-                        
-                        pathOuter.setAttribute('d', pathD);
-                        pathOuter.setAttribute('stroke', pourColorObj.hex);
-                        pathOuter.setAttribute('stroke-width', streamWidth);
-
-                        pathInner.setAttribute('d', pathD);
-                        pathInner.setAttribute('stroke-width', Math.max(1, streamWidth * 0.38));
-
-                        if (Math.random() < 0.38) {
-                            triggerLiquidSplash(destX, landingY, pourColorObj.hex);
-                            triggerTargetBubbles(destTubeEl);
-                        }
-
-                        audio.updatePourPitch(totalCurrentUnitsInDest);
-                        requestAnimationFrame(animatePourLoop);
-                    } else {
-                        // Pouring Complete
-                        pathOuter.setAttribute('d', '');
-                        pathInner.setAttribute('d', '');
-                        audio.stopPourSound();
-
-                        for (let i = 0; i < unitsToPour; i++) {
-                            dest.push(source.pop());
-                        }
-
-                        fromWrapper.style.transform = 'none';
-                        fromWrapper.style.zIndex = '1';
-
-                        setTimeout(() => {
-                            isAnimating = false;
-                            selectedTubeIndex = null;
-                            moveCount++;
-                            renderBoard();
-                            checkCompletionAndWin();
-                        }, 220);
-                    }
-                }
-
-                requestAnimationFrame(animatePourLoop);
-
-            }, 380);
+            }, 220);
         }
 
-        function finishPourLogic(fromIdx, toIdx) {
-            const source = tubes[fromIdx];
-            const dest = tubes[toIdx];
-
-            const unitsToPour = getTopColorGroupCount(source);
-            const availableSpace = TUBE_CAPACITY - dest.length;
-            const actualTransfer = Math.min(unitsToPour, availableSpace);
-
-            for (let i = 0; i < actualTransfer; i++) {
-                dest.push(source.pop());
-            }
-
-            moveCount++;
-            selectedTubeIndex = null;
-            renderBoard();
-        }
-
-        function saveMoveState() {
-            moveHistory.push(JSON.stringify(tubes));
-            if (moveHistory.length > 20) moveHistory.shift();
-        }
-
-        function undoMove() {
-            if (isAnimating || moveHistory.length === 0 || undoRemaining <= 0) return;
-
-            const previousState = moveHistory.pop();
-            tubes = JSON.parse(previousState);
-            undoRemaining--;
-            if (moveCount > 0) moveCount--;
-            selectedTubeIndex = null;
-            audio.playSelect();
-            renderBoard();
-        }
-
-        function addExtraTube() {
-            if (isAnimating) return;
-            if (tubes.length >= initialTubesState.length + 2) {
-                audio.playError();
-                return;
-            }
-            saveMoveState();
-            tubes.push([]);
-            audio.playSelect();
-            renderBoard();
-        }
-
-        function checkCompletionAndWin() {
-            let allComplete = true;
-
-            tubes.forEach(tube => {
-                if (tube.length === 0) return;
-                const isFull = tube.length === TUBE_CAPACITY;
-                const isSingleColor = tube.every(c => c === tube[0]);
-                if (!isFull || !isSingleColor) allComplete = false;
+        function checkWinCondition() {
+            const isWon = tubes.every(tube => {
+                return tube.length === 0 || (tube.length === TUBE_CAPACITY && tube.every(c => c === tube[0]));
             });
 
-            if (allComplete) {
+            if (isWon) {
                 audio.playWin();
-                triggerWinModal();
-            }
-        }
-
-        function triggerWinModal() {
-            if (window.confetti) {
                 confetti({
                     particleCount: 120,
-                    spread: 80,
+                    spread: 70,
                     origin: { y: 0.6 }
                 });
+
+                document.getElementById('final-moves').innerText = moveCount;
+                document.getElementById('final-level').innerText = `LV ${currentLevel}`;
+
+                const winModal = document.getElementById('win-modal');
+                winModal.classList.remove('hidden');
+                setTimeout(() => {
+                    winModal.classList.remove('opacity-0');
+                    winModal.querySelector('.modal-content').classList.remove('scale-90');
+                }, 10);
             }
-
-            document.getElementById('final-moves').innerText = moveCount;
-            document.getElementById('final-level').innerText = `LV ${currentLevel}`;
-
-            const winModal = document.getElementById('win-modal');
-            winModal.classList.remove('hidden');
-            setTimeout(() => {
-                winModal.classList.add('opacity-100');
-                winModal.querySelector('.modal-content').classList.remove('scale-90');
-                winModal.querySelector('.modal-content').classList.add('scale-100');
-            }, 50);
         }
 
-        function loadLevel(levelNum) {
-            currentLevel = levelNum;
+        function initGame(level = 1) {
+            currentLevel = level;
             moveCount = 0;
             moveHistory = [];
             selectedTubeIndex = null;
+            isAnimating = false;
             undoRemaining = 5;
 
-            tubes = generateSolvableLevel(levelNum);
+            tubes = generateSolvableLevel(currentLevel);
             initialTubesState = JSON.parse(JSON.stringify(tubes));
 
             renderBoard();
         }
 
-        function restartLevel() {
+        // --- BUTTON EVENT LISTENERS ---
+
+        document.getElementById('btn-restart').onclick = () => {
             if (isAnimating) return;
             tubes = JSON.parse(JSON.stringify(initialTubesState));
             moveCount = 0;
             moveHistory = [];
             selectedTubeIndex = null;
-            audio.playSelect();
             renderBoard();
-        }
+        };
 
-        function openMenuModal() {
+        document.getElementById('btn-undo').onclick = () => {
+            if (isAnimating || moveHistory.length === 0 || undoRemaining <= 0) return;
+            const lastState = moveHistory.pop();
+            tubes = lastState.tubes;
+            moveCount = lastState.moveCount;
+            undoRemaining--;
+            selectedTubeIndex = null;
+            renderBoard();
+        };
+
+        document.getElementById('btn-add-tube').onclick = () => {
+            if (isAnimating) return;
+            tubes.push([]);
+            renderBoard();
+        };
+
+        document.getElementById('btn-sound').onclick = () => {
+            audio.muted = !audio.muted;
+            const icon = document.getElementById('sound-icon');
+            icon.className = audio.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+        };
+
+        document.getElementById('btn-next-level').onclick = () => {
+            const winModal = document.getElementById('win-modal');
+            winModal.classList.add('opacity-0');
+            setTimeout(() => {
+                winModal.classList.add('hidden');
+                initGame(currentLevel + 1);
+            }, 300);
+        };
+
+        document.getElementById('btn-menu').onclick = () => {
+            const menuModal = document.getElementById('menu-modal');
             const levelGrid = document.getElementById('level-grid');
             levelGrid.innerHTML = '';
 
-            for (let l = 1; l <= Math.max(30, currentLevel + 5); l++) {
+            for (let i = 1; i <= 30; i++) {
                 const btn = document.createElement('button');
-                btn.className = `p-2.5 rounded-xl font-bold transition-all ${
-                    l === currentLevel 
-                        ? 'bg-amber-400 text-amber-950 font-black border-2 border-amber-200' 
-                        : 'bg-gray-700 hover:bg-gray-600 text-white'
-                }`;
-                btn.innerText = l;
+                btn.className = `py-2 rounded-xl border ${i === currentLevel ? 'bg-amber-400 text-gray-900 border-amber-300 font-extrabold' : 'bg-gray-700 text-white border-gray-600'}`;
+                btn.innerText = i;
                 btn.onclick = () => {
-                    closeMenuModal();
-                    loadLevel(l);
+                    menuModal.classList.add('opacity-0');
+                    setTimeout(() => {
+                        menuModal.classList.add('hidden');
+                        initGame(i);
+                    }, 300);
                 };
                 levelGrid.appendChild(btn);
             }
 
-            const menuModal = document.getElementById('menu-modal');
             menuModal.classList.remove('hidden');
-            setTimeout(() => menuModal.classList.add('opacity-100'), 50);
-        }
+            setTimeout(() => menuModal.classList.remove('opacity-0'), 10);
+        };
 
-        function closeMenuModal() {
+        document.getElementById('btn-close-menu').onclick = () => {
             const menuModal = document.getElementById('menu-modal');
-            menuModal.classList.remove('opacity-100');
+            menuModal.classList.add('opacity-0');
             setTimeout(() => menuModal.classList.add('hidden'), 300);
-        }
+        };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('btn-restart').onclick = restartLevel;
-            document.getElementById('btn-undo').onclick = undoMove;
-            document.getElementById('btn-add-tube').onclick = addExtraTube;
-
-            document.getElementById('btn-sound').onclick = () => {
-                audio.muted = !audio.muted;
-                const icon = document.getElementById('sound-icon');
-                if (audio.muted) {
-                    icon.className = 'fa-solid fa-volume-xmark text-red-400';
-                } else {
-                    icon.className = 'fa-solid fa-volume-high';
-                    audio.playSelect();
-                }
-            };
-
-            document.getElementById('btn-menu').onclick = openMenuModal;
-            document.getElementById('btn-close-menu').onclick = closeMenuModal;
-
-            document.getElementById('btn-next-level').onclick = () => {
-                const winModal = document.getElementById('win-modal');
-                winModal.classList.remove('opacity-100');
-                setTimeout(() => {
-                    winModal.classList.add('hidden');
-                    loadLevel(currentLevel + 1);
-                }, 300);
-            };
-
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'r' || e.key === 'R') restartLevel();
-                if (e.key === 'z' || e.key === 'Z') undoMove();
-            });
-
-            loadLevel(1);
-        });
+        // Initialize on load
+        window.onload = () => {
+            initGame(1);
+        };
     </script>
 </body>
 </html>
