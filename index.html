@@ -35,10 +35,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            z-index: 10;
         }
 
         .tube-wrapper.selected {
             transform: translateY(-24px);
+        }
+
+        .tube-wrapper.pouring-source {
+            z-index: 40;
+            transition: transform 0.35s ease-in-out;
         }
 
         @keyframes tubeShake {
@@ -66,6 +72,8 @@
             background: rgba(255, 255, 255, 0.04);
             display: flex;
             flex-direction: column-reverse;
+            transform-origin: 50% 15px;
+            transition: transform 0.35s ease-in-out;
         }
 
         /* Thin flat glass lip top edge */
@@ -101,7 +109,7 @@
             width: 100%;
             position: relative;
             overflow: visible;
-            transition: height 0.15s ease-out;
+            transition: height 0.08s linear;
         }
 
         /* Subtle liquid surface wave */
@@ -111,7 +119,7 @@
             left: -10%;
             width: 120%;
             height: 6px;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.35);
             border-radius: 50%;
             animation: liquidWave 1.1s infinite ease-in-out alternate;
             pointer-events: none;
@@ -149,8 +157,7 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: 50;
-            display: none;
+            z-index: 45;
         }
 
         /* Dynamic fluid bubble in target bottle */
@@ -277,16 +284,15 @@
 
     <!-- PLAY AREA FOR TEST TUBES -->
     <main class="w-full max-w-lg flex-1 flex flex-col justify-center items-center px-3 relative my-auto">
-        <!-- SVG Stream overlay for pouring fluid -->
+        <!-- SVG Stream overlay for pouring fluid (supports multiple active streams) -->
         <svg id="pour-svg" class="pour-svg-container">
             <defs>
                 <filter id="liquid-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feGaussianBlur stdDeviation="1.5" result="blur" />
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
             </defs>
-            <path id="stream-path-outer" fill="none" stroke-linecap="round" filter="url(#liquid-glow)" />
-            <path id="stream-path-inner" fill="none" stroke-linecap="round" stroke="#ffffff" stroke-opacity="0.75" />
+            <g id="active-streams-group"></g>
         </svg>
         <div id="splash-container"></div>
 
@@ -354,7 +360,7 @@
             constructor() {
                 this.ctx = null;
                 this.muted = false;
-                this.pourAudioNode = null;
+                this.activeAudioNodes = new Map();
             }
 
             init() {
@@ -367,10 +373,10 @@
                 }
             }
 
-            startPourSound(fillLevel) {
+            startPourSound(pourId, fillLevel) {
                 if (this.muted) return;
                 this.init();
-                this.stopPourSound();
+                this.stopPourSound(pourId);
 
                 const bufferSize = this.ctx.sampleRate * 2;
                 const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -395,7 +401,7 @@
 
                 const gain = this.ctx.createGain();
                 gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.13, this.ctx.currentTime + 0.08);
+                gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.08);
 
                 noise.connect(filter);
                 filter.connect(gain);
@@ -405,30 +411,32 @@
                 noise.start();
                 osc.start();
 
-                this.pourAudioNode = { noise, osc, gain, filter };
+                this.activeAudioNodes.set(pourId, { noise, osc, gain, filter });
             }
 
-            updatePourPitch(fillLevel) {
-                if (this.pourAudioNode && this.ctx) {
+            updatePourPitch(pourId, fillLevel) {
+                const node = this.activeAudioNodes.get(pourId);
+                if (node && this.ctx) {
                     const baseFreq = 440 + (fillLevel * 160);
-                    this.pourAudioNode.filter.frequency.setTargetAtTime(baseFreq, this.ctx.currentTime, 0.04);
-                    this.pourAudioNode.osc.frequency.setTargetAtTime(baseFreq * 1.85, this.ctx.currentTime, 0.04);
+                    node.filter.frequency.setTargetAtTime(baseFreq, this.ctx.currentTime, 0.04);
+                    node.osc.frequency.setTargetAtTime(baseFreq * 1.85, this.ctx.currentTime, 0.04);
                 }
             }
 
-            stopPourSound() {
-                if (this.pourAudioNode && this.ctx) {
+            stopPourSound(pourId) {
+                const node = this.activeAudioNodes.get(pourId);
+                if (node && this.ctx) {
                     try {
-                        this.pourAudioNode.gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+                        node.gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
                         setTimeout(() => {
-                            if (this.pourAudioNode) {
-                                this.pourAudioNode.noise.stop();
-                                this.pourAudioNode.osc.stop();
-                                this.pourAudioNode = null;
-                            }
+                            try {
+                                node.noise.stop();
+                                node.osc.stop();
+                            } catch (e) {}
+                            this.activeAudioNodes.delete(pourId);
                         }, 60);
                     } catch (e) {
-                        this.pourAudioNode = null;
+                        this.activeAudioNodes.delete(pourId);
                     }
                 }
             }
@@ -516,12 +524,16 @@
         let tubes = [];
         let initialTubesState = [];
         let selectedTubeIndex = null;
-        let isAnimating = false;
         let moveHistory = [];
         let moveCount = 0;
         let undoRemaining = 5;
 
-        // Group consecutive same colors into a single block to remove inner division lines
+        // Tracks active pouring operations to allow simultaneous movement
+        const activePourSourceSet = new Set();
+        const activePourDestSet = new Set();
+        let pourIdCounter = 0;
+
+        // Group consecutive same colors into a single block
         function getGroupedLayers(tubeContents) {
             if (!tubeContents || tubeContents.length === 0) return [];
             const groups = [];
@@ -543,6 +555,10 @@
 
         function canPour(fromIdx, toIdx) {
             if (fromIdx === toIdx) return false;
+            // Prevent pouring from/to bottles currently involved in another active pour
+            if (activePourSourceSet.has(fromIdx) || activePourDestSet.has(fromIdx)) return false;
+            if (activePourSourceSet.has(toIdx) || activePourDestSet.has(toIdx)) return false;
+
             const source = tubes[fromIdx];
             const dest = tubes[toIdx];
 
@@ -554,7 +570,8 @@
         }
 
         function handleTubeClick(idx) {
-            if (isAnimating) return;
+            // Ignore click if this bottle is actively pouring/receiving liquid
+            if (activePourSourceSet.has(idx) || activePourDestSet.has(idx)) return;
 
             if (selectedTubeIndex === null) {
                 const clickedTube = tubes[idx];
@@ -590,7 +607,7 @@
 
                 if (tubes[idx] && tubes[idx].length > 0) {
                     const isComplete = tubes[idx].length === TUBE_CAPACITY && tubes[idx].every(c => c === tubes[idx][0]);
-                    if (!isComplete) {
+                    if (!isComplete && !activePourSourceSet.has(idx) && !activePourDestSet.has(idx)) {
                         selectedTubeIndex = idx;
                         renderBoard();
                     }
@@ -697,13 +714,14 @@
                     tubeEl.appendChild(cork);
                 }
 
-                // Group consecutive same colors into a single seamless div (NO internal dividing lines)
+                // Group consecutive same colors into a single seamless div
                 const groupedLayers = getGroupedLayers(tubeContents);
 
                 groupedLayers.forEach((group, gIdx) => {
                     const colorObj = COLOR_PALETTE.find(c => c.id === group.colorId) || COLOR_PALETTE[0];
                     const layer = document.createElement('div');
                     layer.className = 'liquid-layer';
+                    layer.dataset.colorId = group.colorId;
                     
                     // Flat pastel fill for 2D aesthetics
                     layer.style.backgroundColor = colorObj.hex;
@@ -736,12 +754,47 @@
             document.getElementById('level-title').innerText = `LEVEL ${currentLevel}`;
             document.getElementById('move-counter').innerText = `手数: ${moveCount}`;
             document.getElementById('undo-count').innerText = undoRemaining;
-            document.getElementById('btn-undo').disabled = moveHistory.length === 0 || undoRemaining <= 0;
+            document.getElementById('btn-undo').disabled = moveHistory.length === 0 || undoRemaining <= 0 || activePourSourceSet.size > 0;
+        }
+
+        // Direct DOM Liquid update for ultra-smooth dynamic volume animation while pouring concurrently
+        function updateTubeLiquidDOM(idx) {
+            const tubeEl = document.getElementById(`tube-${idx}`);
+            if (!tubeEl) return;
+
+            const isComplete = tubes[idx].length === TUBE_CAPACITY && tubes[idx].every(c => c === tubes[idx][0]);
+            if (isComplete && !tubeEl.querySelector('.cork')) {
+                tubeEl.classList.add('completed');
+                const cork = document.createElement('div');
+                cork.className = 'cork';
+                tubeEl.appendChild(cork);
+            }
+
+            // Remove existing liquid layers to redraw cleanly
+            const existingLayers = tubeEl.querySelectorAll('.liquid-layer');
+            existingLayers.forEach(l => l.remove());
+
+            const groupedLayers = getGroupedLayers(tubes[idx]);
+            groupedLayers.forEach((group, gIdx) => {
+                const colorObj = COLOR_PALETTE.find(c => c.id === group.colorId) || COLOR_PALETTE[0];
+                const layer = document.createElement('div');
+                layer.className = 'liquid-layer';
+                layer.dataset.colorId = group.colorId;
+                layer.style.backgroundColor = colorObj.hex;
+                layer.style.height = `${(group.count / TUBE_CAPACITY) * 100}%`;
+
+                if (gIdx === groupedLayers.length - 1) {
+                    const wave = document.createElement('div');
+                    wave.className = 'liquid-surface-wave';
+                    layer.appendChild(wave);
+                }
+                tubeEl.appendChild(layer);
+            });
         }
 
         function triggerLiquidSplash(x, y, colorHex) {
             const container = document.getElementById('splash-container');
-            const particleCount = 3 + Math.floor(Math.random() * 3);
+            const particleCount = 2 + Math.floor(Math.random() * 3);
 
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
@@ -768,7 +821,7 @@
 
         function triggerTargetBubbles(tubeEl) {
             const topLayer = tubeEl.lastElementChild;
-            if (!topLayer) return;
+            if (!topLayer || !topLayer.classList.contains('liquid-layer')) return;
 
             for (let i = 0; i < 2; i++) {
                 const bubble = document.createElement('div');
@@ -784,17 +837,19 @@
             }
         }
 
+        // SIMULTANEOUS REAL-TIME POURING ANIMATION ENGINE
         function executePourAnimation(fromIdx, toIdx) {
-            isAnimating = true;
+            const pourId = `pour-${++pourIdCounter}`;
+            activePourSourceSet.add(fromIdx);
+            activePourDestSet.add(toIdx);
 
             const fromWrapper = document.querySelector(`.tube-wrapper[data-index="${fromIdx}"]`);
             const toWrapper = document.querySelector(`.tube-wrapper[data-index="${toIdx}"]`);
-            const pathOuter = document.getElementById('stream-path-outer');
-            const pathInner = document.getElementById('stream-path-inner');
-            const pourSvg = document.getElementById('pour-svg');
+            const streamsGroup = document.getElementById('active-streams-group');
 
             if (!fromWrapper || !toWrapper) {
-                isAnimating = false;
+                activePourSourceSet.delete(fromIdx);
+                activePourDestSet.delete(toIdx);
                 return;
             }
 
@@ -804,11 +859,12 @@
                 moveCount: moveCount
             });
             moveCount++;
+            document.getElementById('move-counter').innerText = `手数: ${moveCount}`;
 
             const colorToPour = tubes[fromIdx][tubes[fromIdx].length - 1];
             const colorObj = COLOR_PALETTE.find(c => c.id === colorToPour) || COLOR_PALETTE[0];
 
-            // Count how many units of the same color can be transferred
+            // Count units to transfer
             let pourAmount = 0;
             const topColor = tubes[fromIdx][tubes[fromIdx].length - 1];
             for (let i = tubes[fromIdx].length - 1; i >= 0; i--) {
@@ -819,62 +875,107 @@
                 }
             }
 
+            fromWrapper.classList.add('pouring-source');
+            const fromTube = fromWrapper.querySelector('.tube');
+
+            // Determine tilt direction relative to target position
             const fromRect = fromWrapper.getBoundingClientRect();
             const toRect = toWrapper.getBoundingClientRect();
+            const isTargetOnLeft = toRect.left < fromRect.left;
+            const tiltAngle = isTargetOnLeft ? -72 : 72;
 
-            // Calculate start and end positions for fluid stream
-            const startX = fromRect.left + fromRect.width / 2;
-            const startY = fromRect.top + 10;
-            const endX = toRect.left + toRect.width / 2;
-            const endY = toRect.top + 30;
+            // Lift and tilt bottle to pouring spot smoothly
+            const pourOffsetX = isTargetOnLeft ? (toRect.left - fromRect.left + 45) : (toRect.left - fromRect.left - 45);
+            const pourOffsetY = toRect.top - fromRect.top - 55;
 
-            // Draw stream curve in SVG
-            const controlX = (startX + endX) / 2;
-            const controlY = Math.min(startY, endY) - 50;
-            const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+            fromWrapper.style.transform = `translate(${pourOffsetX}px, ${pourOffsetY}px)`;
+            fromTube.style.transform = `rotate(${tiltAngle}deg)`;
 
-            pathOuter.setAttribute('d', d);
-            pathOuter.setAttribute('stroke', colorObj.hex);
-            pathOuter.setAttribute('stroke-width', '8');
-            
-            pathInner.setAttribute('d', d);
-            pathInner.setAttribute('stroke-width', '3');
+            // Create dedicated SVG elements for this pour stream
+            const streamPathOuter = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const streamPathInner = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
-            pourSvg.style.display = 'block';
+            streamPathOuter.setAttribute('fill', 'none');
+            streamPathOuter.setAttribute('stroke-linecap', 'round');
+            streamPathOuter.setAttribute('stroke', colorObj.hex);
+            streamPathOuter.setAttribute('stroke-width', '7');
+            streamPathOuter.setAttribute('filter', 'url(#liquid-glow)');
 
-            // Play pouring sound effect based on destination fill height
-            audio.startPourSound(tubes[toIdx].length / TUBE_CAPACITY);
+            streamPathInner.setAttribute('fill', 'none');
+            streamPathInner.setAttribute('stroke-linecap', 'round');
+            streamPathInner.setAttribute('stroke', '#ffffff');
+            streamPathInner.setAttribute('stroke-opacity', '0.75');
+            streamPathInner.setAttribute('stroke-width', '2.5');
 
-            let stepsDone = 0;
-            const pourInterval = setInterval(() => {
-                if (stepsDone < pourAmount) {
-                    const unit = tubes[fromIdx].pop();
-                    tubes[toIdx].push(unit);
-                    stepsDone++;
+            streamsGroup.appendChild(streamPathOuter);
+            streamsGroup.appendChild(streamPathInner);
 
-                    audio.updatePourPitch(tubes[toIdx].length / TUBE_CAPACITY);
-                    triggerLiquidSplash(endX, endY, colorObj.hex);
-                    renderBoard();
+            // Wait for bottle tilt transition to complete, then flow water
+            setTimeout(() => {
+                audio.startPourSound(pourId, tubes[toIdx].length / TUBE_CAPACITY);
 
-                    const toTubeEl = document.getElementById(`tube-${toIdx}`);
-                    if (toTubeEl) triggerTargetBubbles(toTubeEl);
-                } else {
-                    clearInterval(pourInterval);
-                    audio.stopPourSound();
+                let stepsDone = 0;
+                const pourInterval = setInterval(() => {
+                    const currentFromRect = fromWrapper.getBoundingClientRect();
+                    const currentToRect = toWrapper.getBoundingClientRect();
 
-                    // Hide SVG stream line
-                    pathOuter.setAttribute('d', '');
-                    pathInner.setAttribute('d', '');
-                    pourSvg.style.display = 'none';
+                    // Calculate lip spout position
+                    const spoutX = isTargetOnLeft ? currentFromRect.left + 8 : currentFromRect.right - 8;
+                    const spoutY = currentFromRect.top + 22;
 
-                    isAnimating = false;
-                    renderBoard();
-                    checkWinCondition();
-                }
-            }, 220);
+                    // Calculate liquid surface level inside target tube
+                    const destFillRatio = (tubes[toIdx].length + 1) / TUBE_CAPACITY;
+                    const destTargetY = currentToRect.bottom - (currentToRect.height * destFillRatio) + 12;
+                    const destTargetX = currentToRect.left + (currentToRect.width / 2);
+
+                    // Dynamic curved bezier path for fluid stream
+                    const midControlX = (spoutX + destTargetX) / 2;
+                    const midControlY = Math.min(spoutY, destTargetX) - 15;
+                    const d = `M ${spoutX} ${spoutY} Q ${midControlX} ${midControlY} ${destTargetX} ${destTargetY}`;
+
+                    streamPathOuter.setAttribute('d', d);
+                    streamPathInner.setAttribute('d', d);
+
+                    if (stepsDone < pourAmount) {
+                        const unit = tubes[fromIdx].pop();
+                        tubes[toIdx].push(unit);
+                        stepsDone++;
+
+                        updateTubeLiquidDOM(fromIdx);
+                        updateTubeLiquidDOM(toIdx);
+
+                        audio.updatePourPitch(pourId, tubes[toIdx].length / TUBE_CAPACITY);
+                        triggerLiquidSplash(destTargetX, destTargetY, colorObj.hex);
+
+                        const toTubeEl = document.getElementById(`tube-${toIdx}`);
+                        if (toTubeEl) triggerTargetBubbles(toTubeEl);
+                    } else {
+                        clearInterval(pourInterval);
+                        audio.stopPourSound(pourId);
+
+                        // Fade stream line out
+                        streamPathOuter.remove();
+                        streamPathInner.remove();
+
+                        // Return bottle to original position
+                        fromWrapper.style.transform = '';
+                        fromTube.style.transform = '';
+                        fromWrapper.classList.remove('pouring-source');
+
+                        setTimeout(() => {
+                            activePourSourceSet.delete(fromIdx);
+                            activePourDestSet.delete(toIdx);
+                            renderBoard();
+                            checkWinCondition();
+                        }, 280);
+                    }
+                }, 180);
+            }, 260);
         }
 
         function checkWinCondition() {
+            if (activePourSourceSet.size > 0) return; // Wait until all active pours complete
+
             const isWon = tubes.every(tube => {
                 return tube.length === 0 || (tube.length === TUBE_CAPACITY && tube.every(c => c === tube[0]));
             });
@@ -904,8 +1005,9 @@
             moveCount = 0;
             moveHistory = [];
             selectedTubeIndex = null;
-            isAnimating = false;
             undoRemaining = 5;
+            activePourSourceSet.clear();
+            activePourDestSet.clear();
 
             tubes = generateSolvableLevel(currentLevel);
             initialTubesState = JSON.parse(JSON.stringify(tubes));
@@ -916,7 +1018,7 @@
         // --- BUTTON EVENT LISTENERS ---
 
         document.getElementById('btn-restart').onclick = () => {
-            if (isAnimating) return;
+            if (activePourSourceSet.size > 0) return;
             tubes = JSON.parse(JSON.stringify(initialTubesState));
             moveCount = 0;
             moveHistory = [];
@@ -925,7 +1027,7 @@
         };
 
         document.getElementById('btn-undo').onclick = () => {
-            if (isAnimating || moveHistory.length === 0 || undoRemaining <= 0) return;
+            if (activePourSourceSet.size > 0 || moveHistory.length === 0 || undoRemaining <= 0) return;
             const lastState = moveHistory.pop();
             tubes = lastState.tubes;
             moveCount = lastState.moveCount;
@@ -935,7 +1037,7 @@
         };
 
         document.getElementById('btn-add-tube').onclick = () => {
-            if (isAnimating) return;
+            if (activePourSourceSet.size > 0) return;
             tubes.push([]);
             renderBoard();
         };
