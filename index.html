@@ -286,12 +286,6 @@
     <main class="w-full max-w-lg flex-1 flex flex-col justify-center items-center px-3 relative my-auto">
         <!-- SVG Stream overlay for pouring fluid (supports multiple active streams) -->
         <svg id="pour-svg" class="pour-svg-container">
-            <defs>
-                <filter id="liquid-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="1.5" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                </filter>
-            </defs>
             <g id="active-streams-group"></g>
         </svg>
         <div id="splash-container"></div>
@@ -891,24 +885,16 @@
             fromWrapper.style.transform = `translate(${pourOffsetX}px, ${pourOffsetY}px)`;
             fromTube.style.transform = `rotate(${tiltAngle}deg)`;
 
-            // Create dedicated SVG elements for this pour stream
+            // Create clean solid pastel SVG stream (no white inner line)
             const streamPathOuter = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            const streamPathInner = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
             streamPathOuter.setAttribute('fill', 'none');
             streamPathOuter.setAttribute('stroke-linecap', 'round');
             streamPathOuter.setAttribute('stroke', colorObj.hex);
-            streamPathOuter.setAttribute('stroke-width', '7');
-            streamPathOuter.setAttribute('filter', 'url(#liquid-glow)');
-
-            streamPathInner.setAttribute('fill', 'none');
-            streamPathInner.setAttribute('stroke-linecap', 'round');
-            streamPathInner.setAttribute('stroke', '#ffffff');
-            streamPathInner.setAttribute('stroke-opacity', '0.75');
-            streamPathInner.setAttribute('stroke-width', '2.5');
+            streamPathOuter.setAttribute('stroke-width', '8');
+            streamPathOuter.setAttribute('opacity', '0.92');
 
             streamsGroup.appendChild(streamPathOuter);
-            streamsGroup.appendChild(streamPathInner);
 
             // Wait for bottle tilt transition to complete, then flow water
             setTimeout(() => {
@@ -934,7 +920,6 @@
                     const d = `M ${spoutX} ${spoutY} Q ${midControlX} ${midControlY} ${destTargetX} ${destTargetY}`;
 
                     streamPathOuter.setAttribute('d', d);
-                    streamPathInner.setAttribute('d', d);
 
                     if (stepsDone < pourAmount) {
                         const unit = tubes[fromIdx].pop();
@@ -953,9 +938,8 @@
                         clearInterval(pourInterval);
                         audio.stopPourSound(pourId);
 
-                        // Fade stream line out
+                        // Remove stream line
                         streamPathOuter.remove();
-                        streamPathInner.remove();
 
                         // Return bottle to original position
                         fromWrapper.style.transform = '';
